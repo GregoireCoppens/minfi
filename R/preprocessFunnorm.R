@@ -45,7 +45,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
         sex <- rep(1L, length(gmSet$predictedSex))
         sex[gmSet$predictedSex == "F"] <- 2L
     }
-    if(verbose) message("[preprocessFunnorm] Normalization")
+    if(verbose) message("[preprocessFunnorm] Normalization...")
     if(keepCN) {
         if(verbose) message("[preprocessFunnorm] Normalization-getCN")
         CN <- getCN(gmSet)
