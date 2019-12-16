@@ -85,7 +85,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
  }
 
  .normalizeFunnorm450k <- function(object, extractedData, nPCs, sex, verbose = TRUE) {
-     normalizeQuantiles <- function(matrix, indices, sex = NULL, verbose=verbose) {
+     normalizeQuantiles <- function(matrix, indices, sex = NULL, verbose=TRUE) {
          matrix <- matrix[indices,,drop=FALSE]
          ## uses probs, model.matrix, nPCS, through scoping)
          if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex")
@@ -116,8 +116,8 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
             indices <- indicesList[[type]]
             if(length(indices) > 0) {
                 if(verbose) message(sprintf("[normalizeFunnorm450k] Normalization of the %s probes", type))
-                Unmeth[indices,] <- normalizeQuantiles(Unmeth, indices = indices, sex = NULL)
-                Meth[indices,] <- normalizeQuantiles(Meth, indices = indices, sex = NULL)
+                Unmeth[indices,] <- normalizeQuantiles(Unmeth, indices = indices, sex = NULL, verbose=verbose)
+                Meth[indices,] <- normalizeQuantiles(Meth, indices = indices, sex = NULL, verbose=verbose)
             }
         }
 
@@ -126,8 +126,8 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
         indices <- indicesList[["X"]]
         if(length(indices) > 0) {
             if(verbose) message("[normalizeFunnorm450k] Normalization of the X-chromosome")
-            Unmeth[indices,] <- normalizeQuantiles(Unmeth, indices = indices, sex = sex)
-            Meth[indices,] <- normalizeQuantiles(Meth, indices = indices, sex = sex)
+            Unmeth[indices,] <- normalizeQuantiles(Unmeth, indices = indices, sex = sex, verbose=verbose)
+            Meth[indices,] <- normalizeQuantiles(Meth, indices = indices, sex = sex, verbose=verbose)
         }
     }
 
