@@ -85,7 +85,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
  }
 
  .normalizeFunnorm450k <- function(object, extractedData, nPCs, sex, verbose = TRUE) {
-     normalizeQuantiles <- function(matrix, indices, sex = NULL) {
+     normalizeQuantiles <- function(matrix, indices, sex = NULL, verbose=verbose) {
          matrix <- matrix[indices,,drop=FALSE]
          ## uses probs, model.matrix, nPCS, through scoping)
          if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex")
@@ -96,13 +96,13 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
              newQuantiles <- .returnFitBySex(controlMatrix = model.matrix, quantiles = oldQuantiles, nPCs = nPCs, sex = sex)
          }
          if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix")
-         .normalizeMatrix(matrix, newQuantiles)
+         .normalizeMatrix(matrix, newQuantiles, verbose=verbose)
      }
     
     invisible(gc())
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.buildControl")
     indicesList <- .getFunnormIndices(object)
-    model.matrix <- .buildControlMatrix450k(extractedData)
+    model.matrix <- .buildControlMatrix450k(extractedData, verbose=verbose)
     probs <- seq(from = 0, to = 1, length.out = 500)
      
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-getMeth/getUnmeth")
@@ -215,7 +215,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
 
 
 ## Extraction of the Control matrix
-.buildControlMatrix450k <- function(extractedData) {
+.buildControlMatrix450k <- function(extractedData, verbose=TRUE) {
     invisible(gc())
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.buildControl-setVars")
     getCtrlsAddr <- function(exType, index) {
@@ -468,7 +468,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
 }
 
 ### Normalize a matrix of intensities
-.normalizeMatrix <- function(intMatrix, newQuantiles) {
+.normalizeMatrix <- function(intMatrix, newQuantiles, verbose=TRUE) {
     invisible(gc())
     ## normMatrix <- matrix(NA, nrow(intMatrix), ncol(intMatrix))
     n <- nrow(newQuantiles)
@@ -477,7 +477,6 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
         crtColumn <- intMatrix[ , i]
         crtColumn.reduced <- crtColumn[!is.na(crtColumn)]
         ## Generation of the corrected intensities:
-        if(verbose) message(paste0("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply: ", i))
         target <- sapply(1:(n-1), function(j) {
             start <- newQuantiles[j,i]
             end <- newQuantiles[j+1,i]
