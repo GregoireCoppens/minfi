@@ -382,18 +382,25 @@ preprocessNoob <- function(rgSet, offset = 15, dyeCorr = TRUE, verbose = FALSE,
     dyeMethod <- match.arg(dyeMethod)
 
     # Extract data to pass to low-level functions that construct `M` and `U`
+    if(verbose) message("[PreprocessNoob] Extracting Data")
     oob <- getOOB(rgSet)
     GreenOOB <- oob[["Grn"]]
     RedOOB <- oob[["Red"]]
+    invisible(gc())
+    if(verbose) message("[PreprocessNoob] Raw preprocessing")
     MSet <- preprocessRaw(rgSet)
+    if(verbose) message("[PreprocessNoob] Fetching Probes")
     probe.type <- getProbeType(MSet, withColor = TRUE)
     Green_probes <- which(probe.type == "IGrn")
     Red_probes <- which(probe.type == "IRed")
     d2.probes <- which(probe.type == "II")
+    if(verbose) message("[PreprocessNoob] Fetching (Un)Methylation data")
     Meth <- getMeth(MSet)
     Unmeth <- getUnmeth(MSet)
 
     if (dyeCorr) {
+        invisible(gc())
+        if(verbose) message("[PreprocessNoob] Setting up dye correction")
         control_probes <- getProbeInfo(rgSet, type = "Control")
         control_probes <- control_probes[
             control_probes$Address %in% rownames(rgSet), ]
@@ -406,6 +413,8 @@ preprocessNoob <- function(rgSet, offset = 15, dyeCorr = TRUE, verbose = FALSE,
         Green <- NULL
         array_type <- NULL
     }
+    invisible(gc())
+    if(verbose) message("[PreprocessNoob] Starting preprocessing")
     M_and_U <- .preprocessNoob(
         Meth = Meth,
         Unmeth = Unmeth,
@@ -430,6 +439,7 @@ preprocessNoob <- function(rgSet, offset = 15, dyeCorr = TRUE, verbose = FALSE,
     #       shown as NA by show,MethylSet-method
     MSet@preprocessMethod <- c(
         mu.norm = sprintf("Noob, dyeCorr=%s, dyeMethod=%s", dyeCorr, dyeMethod))
+    invisible(gc())
     MSet
 }
 
