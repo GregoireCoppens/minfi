@@ -21,8 +21,9 @@ normexp.get.xs <- function(xf, controls, offset = 50, verbose = FALSE) {
     if(verbose) message("[normexp.get.xs] normexp.signal")
     for (i in seq_len(ncol(xf))) {
         xf[, i] <- normexp.signal(as.numeric(pars[i, ]), xf[, i])
+        invisible(gc())
     }
-    invisible(gc())
+    if(verbose) message("[normexp.get.xs] Build dataframe and return output")
     list(
         xs = xf + offset,
         params = data.frame(
@@ -206,6 +207,7 @@ setMethod(
                 names(xs[["params"]]), nch, sep = ".")
             names(xs[["meta"]]) <- paste(names(xs[["meta"]]), nch, sep = ".")
             invisible(gc())
+            if(verbose) message(paste0("[PreprocessNoob] Return xs", nch))
             xs
         }, oob = list(Green = GreenOOB, Red = RedOOB))
         names(estimates) <- names(dat)
