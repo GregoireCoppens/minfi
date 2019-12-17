@@ -22,7 +22,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
             message("[preprocessFunnorm] Background correction with noob")
         }
         invisible(gc())
-        gmSet <- preprocessNoob(rgSet, dyeCorr = dyeCorr)
+        gmSet <- preprocessNoob(rgSet, dyeCorr = dyeCorr, verbose=verbose)
         if(verbose) message("[preprocessFunnorm] Mapping to genome")
         invisible(gc())
         gmSet <- mapToGenome(gmSet)
