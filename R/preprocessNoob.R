@@ -6,13 +6,10 @@ utils::globalVariables("oob")
 
 # TODO: Profile
 normexp.get.xs <- function(xf, controls, offset = 50, verbose = FALSE) {
-    if (verbose) {
-        message(
-            "[normexp.get.xs] Background mean & SD estimated from ",
-            nrow(controls),
-            " probes")
-    }
+    if (verbose) message("[normexp.get.xs] Background mean & SD estimated from ", nrow(controls)," probes")
     mu <- sigma <- alpha <- rep(NA_real_, ncol(xf))
+    invisible(gc())
+    if(verbose) message("[normexp.get.xs] Searching Huber M-estimator of location with MAD scale")
     for (i in seq_len(ncol(xf))) {
         ests <- huber(controls[, i])
         mu[i] <- ests$mu
@@ -20,9 +17,12 @@ normexp.get.xs <- function(xf, controls, offset = 50, verbose = FALSE) {
         alpha[i] <- max(huber(xf[, i])$mu - mu[i], 10)
     }
     pars <- data.frame(mu = mu, lsigma = log(sigma), lalpha = log(alpha))
+    invisible(gc())
+    if(verbose) message("[normexp.get.xs] normexp.signal")
     for (i in seq_len(ncol(xf))) {
         xf[, i] <- normexp.signal(as.numeric(pars[i, ]), xf[, i])
     }
+    invisible(gc())
     list(
         xs = xf + offset,
         params = data.frame(
@@ -36,14 +36,19 @@ normexp.get.xcs <- function(xcf, params) {
               any(grepl("sigma", names(params))),
               any(grepl("alpha", names(params))),
               any(grepl("offset", names(params))))
+    invisible(gc())
+    if(verbose) message("[normexp.get.xcs] Searching Huber M-estimator of location with MAD scale")
     pars <- data.frame(
         mu = params[[grep("mu", names(params), value = TRUE)]],
         sigma = log(params[[grep("sigma", names(params), value = TRUE)]]),
         alpha = log(params[[grep("alpha", names(params), value = TRUE)]]))
+    if(verbose) message("[normexp.get.xcs] normexp.signal")
+    invisible(gc())
     for (i in seq_len(ncol(xcf))) {
         xcf[, i] <- normexp.signal(as.numeric(pars[i, ]), xcf[, i])
     }
 
+    invisible(gc())
     xcf + params[[grep("offset", names(params), value = TRUE)]][1]
 }
 
@@ -63,6 +68,8 @@ dyeCorrection <- function(Meth, Unmeth, Red, Green, control_probes,
                           array_type, dyeMethod, verbose) {
 
     # Background correct the Illumina normalization controls
+    invisible(gc())
+    if(verbose) message("[DyeCorrection] Background correct normalisation controls")
     redControls <- Red[control_probes$Address, , drop = FALSE]
     greenControls <- Green[control_probes$Address, ,drop = FALSE]
     rownames(redControls) <- rownames(greenControls) <-
@@ -91,25 +98,19 @@ dyeCorrection <- function(Meth, Unmeth, Red, Green, control_probes,
     }
 
     # Dye bias normalization with the corrected Illumina control probes
+    invisible(gc())
+    if(verbose) message("[DyeCorrection] Dye bias normalisation")
     Green.avg <- colMeans2(x = internal.controls[["Green"]], rows = CG.controls)
     Red.avg <- colMeans2(x = internal.controls[["Red"]], rows = AT.controls)
     R.G.ratio <- Red.avg / Green.avg
 
     if (dyeMethod == "single") {
-        if (verbose) {
-            message(
-                "[dyeCorrection] Applying R/G ratio flip to fix dye bias")
-        }
+        if (verbose) message("[dyeCorrection] Applying R/G ratio flip to fix dye bias")
         Red.factor <- 1 / R.G.ratio
         Green.factor <- 1
     } else if (dyeMethod == "reference") {
         reference <- which.min(abs(R.G.ratio - 1))
-        if (verbose) {
-            message(
-                "[dyeCorrection] Using sample number ",
-                reference,
-                " as reference level")
-        }
+        if (verbose) message("[dyeCorrection] Using sample number ", reference, " as reference level")
         ref <- (Green.avg + Red.avg)[reference] / 2
         if (is.na(ref)) {
             stop("'reference' refers to an array that is not present")
@@ -129,6 +130,8 @@ dyeCorrection <- function(Meth, Unmeth, Red, Green, control_probes,
 
     # NOTE: Adjust Red regardless of reference or equalization approach
     #       but only adjust Green if using older reference method
+    if(verbose) message("[DyeCorrection] Dye Correction")
+    invisible(gc())
     Red <- lapply(
         X = Red,
         FUN = function(x) {
@@ -148,6 +151,7 @@ dyeCorrection <- function(Meth, Unmeth, Red, Green, control_probes,
         Meth[d2.probes, ] <- Green$D2
     }
 
+    invisible(gc())
     list(Meth = Meth, Unmeth = Unmeth)
 }
 
@@ -178,6 +182,7 @@ setMethod(
         Unmeth[Unmeth <= 0] <- 1L
         
         # NormExp estimates for Green and Red
+        if(verbose) message("[PreprocessNoob] NormExp estimates")
         dat <- list(
             Green = list(
                 M =  Meth[Green_probes, , drop = FALSE],
@@ -200,11 +205,14 @@ setMethod(
             names(xs[["params"]]) <- paste(
                 names(xs[["params"]]), nch, sep = ".")
             names(xs[["meta"]]) <- paste(names(xs[["meta"]]), nch, sep = ".")
+            invisible(gc())
             xs
         }, oob = list(Green = GreenOOB, Red = RedOOB))
         names(estimates) <- names(dat)
 
         # Correct for Green and Red in Meth and Unmeth
+        invisible(gc())
+        if(verbose) message("[PreprocessNoob] Correct for Green and Red")
         rows <- lapply(dat, function(x) vapply(x, nrow, integer(1L)))
         last <- lapply(rows, cumsum)
         first <- Map(function(last, rows) last - rows + 1, last, rows)
@@ -253,6 +261,7 @@ setMethod(
              d2.probes, offset, dyeCorr, Red, Green, control_probes,
              array_type, dyeMethod, verbose, BPREDO = list(),
              BPPARAM = SerialParam()) {
+        if(verbose) message("[PreprocessNoob] Delayed Matrix")
         # Set up intermediate RealizationSink objects of appropriate dimensions
         # and type
         # NOTE: These are ultimately coerced to the output DelayedMatrix
