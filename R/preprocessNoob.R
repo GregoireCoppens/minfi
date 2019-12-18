@@ -15,25 +15,31 @@ normexp.get.xs <- function(xf, controls, offset = 50, verbose = FALSE) {
         mu[i] <- ests$mu
         sigma[i] <- ests$s
         alpha[i] <- max(huber(xf[, i])$mu - mu[i], 10)
-        if(verbose && i%%10==0) message(i, "/", ncol(xf), " - Object size xf: ", object.size(xf))
+        if(verbose && i%%10==0) message(i, "/", ncol(xf))
     }
     if(verbose) message("[normexp.get.xs] Build dataframe pars")
     pars <- data.frame(mu = mu, lsigma = log(sigma), lalpha = log(alpha))
 
+    rm(mu, simga, alpha, ests)
     invisible(gc())
-    ##print(sapply(ls(), object.size))
-    ##print(sapply(ls(envir = .GlobalEnv), object.size))
 
     if(verbose) message("[normexp.get.xs] normexp.signal")
     for (i in seq_len(ncol(xf))) {
+        if(verbose && i==1) message(i, "/", ncol(xf), " - Object size xf - Before: ", object.size(xf))
         xf[, i] <- normexp.signal(as.numeric(pars[i, ]), xf[, i])
+        if(verbose && i==1) message(i, "/", ncol(xf), " - Object size xf - After: ", object.size(xf))
         invisible(gc())
         if(verbose && i%%10==0) message(i, "/", ncol(xf), " - Object size xf: ", object.size(xf))
     }
+    rm(pars)
     invisible(gc())
+
     if(verbose) message("[normexp.get.xs] Build dataframe params")
+
     params <- data.frame(mu = mu, sigma = sigma, alpha = alpha, offset = offset)
+    rm(mu, sigma, alpha)
     invisible(gc())
+
     if(verbose) message("[normexp.get.xs] return output")
     list(
         xs = xf + offset,
@@ -203,9 +209,7 @@ setMethod(
                 M =  Meth[Red_probes, , drop = FALSE],
                 U =  Unmeth[Red_probes, , drop = FALSE],
                 D2 = Unmeth[d2.probes, , drop = FALSE]))
-        print(ls())
         estimates <- lapply(names(dat), function(nch, oob) {
-            print(ls())
             xf <- rbind(
                 dat[[nch]][["M"]],
                 dat[[nch]][["U"]],
@@ -221,6 +225,8 @@ setMethod(
             names(xs[["meta"]]) <- paste(names(xs[["meta"]]), nch, sep = ".")
             ##invisible(gc())
             if(verbose) message(paste0("[PreprocessNoob] Return xs", nch))
+            rm(xf)
+            invisible(gc())
             xs
         }, oob = list(Green = GreenOOB, Red = RedOOB))
         names(estimates) <- names(dat)
@@ -413,6 +419,7 @@ preprocessNoob <- function(rgSet, offset = 15, dyeCorr = TRUE, verbose = FALSE,
     ##invisible(gc())
     if(verbose) message("[PreprocessNoob] Raw preprocessing")
     MSet <- preprocessRaw(rgSet)
+    rm(rgSet, oob)
     if(verbose) message("[PreprocessNoob] Fetching Probes")
     probe.type <- getProbeType(MSet, withColor = TRUE)
     Green_probes <- which(probe.type == "IGrn")
@@ -437,9 +444,11 @@ preprocessNoob <- function(rgSet, offset = 15, dyeCorr = TRUE, verbose = FALSE,
         Green <- NULL
         array_type <- NULL
     }
-    ##invisible(gc())
     if(verbose) message("[PreprocessNoob] Starting preprocessing")
-    print(ls())
+
+    rm(rgSet, MSet oob, probe.type)
+    invisible(gc())
+
     M_and_U <- .preprocessNoob(
         Meth = Meth,
         Unmeth = Unmeth,
