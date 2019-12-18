@@ -18,11 +18,11 @@ normexp.get.xs <- function(xf, controls, offset = 50, verbose = FALSE) {
     }
     pars <- data.frame(mu = mu, lsigma = log(sigma), lalpha = log(alpha))
     invisible(gc())
-    if(verbose) message("[normexp.get.xs] normexp.signal: ", ncol(xf) )
+    if(verbose) message("[normexp.get.xs] normexp.signal")
     for (i in seq_len(ncol(xf))) {
         xf[, i] <- normexp.signal(as.numeric(pars[i, ]), xf[, i])
         invisible(gc())
-        if(verbose && i%%50==0) message(i, "/" ncol(xf))
+        if(verbose && i%%50==0) message(i, "/", ncol(xf))
     }
     if(verbose) message("[normexp.get.xs] Build dataframe and return output")
     list(
@@ -182,7 +182,7 @@ setMethod(
         # Threshold Meth and Unmeth to be positive
         Meth[Meth <= 0] <- 1L
         Unmeth[Unmeth <= 0] <- 1L
-        
+
         # NormExp estimates for Green and Red
         if(verbose) message("[PreprocessNoob] NormExp estimates")
         dat <- list(
