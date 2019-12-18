@@ -21,6 +21,7 @@ normexp.get.xs <- function(xf, controls, offset = 50, verbose = FALSE) {
     if(verbose) message("[normexp.get.xs] normexp.signal", seq_len(ncol(xf)) )
     for (i in seq_len(ncol(xf))) {
         xf[, i] <- normexp.signal(as.numeric(pars[i, ]), xf[, i])
+        if(verbose) message(i)
         invisible(gc())
         if(verbose) message(i)
     }
