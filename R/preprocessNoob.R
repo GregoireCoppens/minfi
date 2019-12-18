@@ -15,30 +15,26 @@ normexp.get.xs <- function(xf, controls, offset = 50, verbose = FALSE) {
         mu[i] <- ests$mu
         sigma[i] <- ests$s
         alpha[i] <- max(huber(xf[, i])$mu - mu[i], 10)
-        if(verbose && i%%50==0) message(i, "/", ncol(xf))
+        if(verbose && i%%10==0) message(i, "/", ncol(xf), " - Object size xf: ", object.size(xf))
     }
     if(verbose) message("[normexp.get.xs] Build dataframe pars")
     pars <- data.frame(mu = mu, lsigma = log(sigma), lalpha = log(alpha))
 
-    ##invisible(gc())
-    print(sapply(ls(), object.size))
-    print(sapply(ls(envir = .GlobalEnv), object.size))
+    invisible(gc())
+    ##print(sapply(ls(), object.size))
+    ##print(sapply(ls(envir = .GlobalEnv), object.size))
 
     if(verbose) message("[normexp.get.xs] normexp.signal")
     for (i in seq_len(ncol(xf))) {
         xf[, i] <- normexp.signal(as.numeric(pars[i, ]), xf[, i])
         invisible(gc())
-        if(verbose && i%%50==0) message(i, "/", ncol(xf))
+        if(verbose && i%%10==0) message(i, "/", ncol(xf), " - Object size xf: ", object.size(xf))
     }
     invisible(gc())
     if(verbose) message("[normexp.get.xs] Build dataframe params")
-    print(sapply(ls(), object.size))
-    print(sapply(ls(envir = .GlobalEnv), object.size))
     params <- data.frame(mu = mu, sigma = sigma, alpha = alpha, offset = offset)
     invisible(gc())
     if(verbose) message("[normexp.get.xs] return output")
-    print(sapply(ls(), object.size))
-    print(sapply(ls(envir = .GlobalEnv), object.size))
     list(
         xs = xf + offset,
         params = params,
@@ -207,9 +203,9 @@ setMethod(
                 M =  Meth[Red_probes, , drop = FALSE],
                 U =  Unmeth[Red_probes, , drop = FALSE],
                 D2 = Unmeth[d2.probes, , drop = FALSE]))
+        print(ls())
         estimates <- lapply(names(dat), function(nch, oob) {
-            print(sapply(ls(), object.size))
-            print(sapply(ls(envir = .GlobalEnv), object.size))
+            print(ls())
             xf <- rbind(
                 dat[[nch]][["M"]],
                 dat[[nch]][["U"]],
@@ -443,6 +439,7 @@ preprocessNoob <- function(rgSet, offset = 15, dyeCorr = TRUE, verbose = FALSE,
     }
     ##invisible(gc())
     if(verbose) message("[PreprocessNoob] Starting preprocessing")
+    print(ls())
     M_and_U <- .preprocessNoob(
         Meth = Meth,
         Unmeth = Unmeth,
