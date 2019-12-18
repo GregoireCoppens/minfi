@@ -8,27 +8,30 @@ utils::globalVariables("oob")
 normexp.get.xs <- function(xf, controls, offset = 50, verbose = FALSE) {
     if (verbose) message("[normexp.get.xs] Background mean & SD estimated from ", nrow(controls)," probes")
     mu <- sigma <- alpha <- rep(NA_real_, ncol(xf))
-    invisible(gc())
+    ##invisible(gc())
     if(verbose) message("[normexp.get.xs] Searching Huber M-estimator of location with MAD scale")
     for (i in seq_len(ncol(xf))) {
         ests <- huber(controls[, i])
         mu[i] <- ests$mu
         sigma[i] <- ests$s
         alpha[i] <- max(huber(xf[, i])$mu - mu[i], 10)
+        if(verbose && i%%50==0) message(i, "/", ncol(xf))
     }
+    if(verbose) message("[normexp.get.xs] Build dataframe pars")
     pars <- data.frame(mu = mu, lsigma = log(sigma), lalpha = log(alpha))
-    invisible(gc())
+    ##invisible(gc())
     if(verbose) message("[normexp.get.xs] normexp.signal")
     for (i in seq_len(ncol(xf))) {
         xf[, i] <- normexp.signal(as.numeric(pars[i, ]), xf[, i])
-        invisible(gc())
+        ##invisible(gc())
         if(verbose && i%%50==0) message(i, "/", ncol(xf))
     }
-    if(verbose) message("[normexp.get.xs] Build dataframe and return output")
+    if(verbose) message("[normexp.get.xs] Build dataframe params")
+    params <- data.frame(mu = mu, sigma = sigma, alpha = alpha, offset = offset)
+    if(verbose) message("[normexp.get.xs] return output")
     list(
         xs = xf + offset,
-        params = data.frame(
-            mu = mu, sigma = sigma, alpha = alpha, offset = offset),
+        params = params,
         meta = c("background mean", "background SD", "signal mean", "offset"))
 }
 
@@ -38,19 +41,19 @@ normexp.get.xcs <- function(xcf, params) {
               any(grepl("sigma", names(params))),
               any(grepl("alpha", names(params))),
               any(grepl("offset", names(params))))
-    invisible(gc())
+    ##invisible(gc())
     if(verbose) message("[normexp.get.xcs] Searching Huber M-estimator of location with MAD scale")
     pars <- data.frame(
         mu = params[[grep("mu", names(params), value = TRUE)]],
         sigma = log(params[[grep("sigma", names(params), value = TRUE)]]),
         alpha = log(params[[grep("alpha", names(params), value = TRUE)]]))
     if(verbose) message("[normexp.get.xcs] normexp.signal")
-    invisible(gc())
+    ##invisible(gc())
     for (i in seq_len(ncol(xcf))) {
         xcf[, i] <- normexp.signal(as.numeric(pars[i, ]), xcf[, i])
     }
 
-    invisible(gc())
+    ##invisible(gc())
     xcf + params[[grep("offset", names(params), value = TRUE)]][1]
 }
 
@@ -70,7 +73,7 @@ dyeCorrection <- function(Meth, Unmeth, Red, Green, control_probes,
                           array_type, dyeMethod, verbose) {
 
     # Background correct the Illumina normalization controls
-    invisible(gc())
+    ##invisible(gc())
     if(verbose) message("[DyeCorrection] Background correct normalisation controls")
     redControls <- Red[control_probes$Address, , drop = FALSE]
     greenControls <- Green[control_probes$Address, ,drop = FALSE]
@@ -100,7 +103,7 @@ dyeCorrection <- function(Meth, Unmeth, Red, Green, control_probes,
     }
 
     # Dye bias normalization with the corrected Illumina control probes
-    invisible(gc())
+    ##invisible(gc())
     if(verbose) message("[DyeCorrection] Dye bias normalisation")
     Green.avg <- colMeans2(x = internal.controls[["Green"]], rows = CG.controls)
     Red.avg <- colMeans2(x = internal.controls[["Red"]], rows = AT.controls)
@@ -133,7 +136,7 @@ dyeCorrection <- function(Meth, Unmeth, Red, Green, control_probes,
     # NOTE: Adjust Red regardless of reference or equalization approach
     #       but only adjust Green if using older reference method
     if(verbose) message("[DyeCorrection] Dye Correction")
-    invisible(gc())
+    ##invisible(gc())
     Red <- lapply(
         X = Red,
         FUN = function(x) {
@@ -153,7 +156,7 @@ dyeCorrection <- function(Meth, Unmeth, Red, Green, control_probes,
         Meth[d2.probes, ] <- Green$D2
     }
 
-    invisible(gc())
+    ##invisible(gc())
     list(Meth = Meth, Unmeth = Unmeth)
 }
 
@@ -204,17 +207,18 @@ setMethod(
                 controls = oob[[nch]],
                 offset = offset,
                 verbose = subverbose)
+            if(verbose) message(paste0("[PreprocessNoob] normexp.get.xs has finished: ", nch))
             names(xs[["params"]]) <- paste(
                 names(xs[["params"]]), nch, sep = ".")
             names(xs[["meta"]]) <- paste(names(xs[["meta"]]), nch, sep = ".")
-            invisible(gc())
+            ##invisible(gc())
             if(verbose) message(paste0("[PreprocessNoob] Return xs", nch))
             xs
         }, oob = list(Green = GreenOOB, Red = RedOOB))
         names(estimates) <- names(dat)
 
         # Correct for Green and Red in Meth and Unmeth
-        invisible(gc())
+        ##invisible(gc())
         if(verbose) message("[PreprocessNoob] Correct for Green and Red")
         rows <- lapply(dat, function(x) vapply(x, nrow, integer(1L)))
         last <- lapply(rows, cumsum)
@@ -398,7 +402,7 @@ preprocessNoob <- function(rgSet, offset = 15, dyeCorr = TRUE, verbose = FALSE,
     oob <- getOOB(rgSet)
     GreenOOB <- oob[["Grn"]]
     RedOOB <- oob[["Red"]]
-    invisible(gc())
+    ##invisible(gc())
     if(verbose) message("[PreprocessNoob] Raw preprocessing")
     MSet <- preprocessRaw(rgSet)
     if(verbose) message("[PreprocessNoob] Fetching Probes")
@@ -411,7 +415,7 @@ preprocessNoob <- function(rgSet, offset = 15, dyeCorr = TRUE, verbose = FALSE,
     Unmeth <- getUnmeth(MSet)
 
     if (dyeCorr) {
-        invisible(gc())
+        ##invisible(gc())
         if(verbose) message("[PreprocessNoob] Setting up dye correction")
         control_probes <- getProbeInfo(rgSet, type = "Control")
         control_probes <- control_probes[
@@ -425,7 +429,7 @@ preprocessNoob <- function(rgSet, offset = 15, dyeCorr = TRUE, verbose = FALSE,
         Green <- NULL
         array_type <- NULL
     }
-    invisible(gc())
+    ##invisible(gc())
     if(verbose) message("[PreprocessNoob] Starting preprocessing")
     M_and_U <- .preprocessNoob(
         Meth = Meth,
@@ -451,7 +455,7 @@ preprocessNoob <- function(rgSet, offset = 15, dyeCorr = TRUE, verbose = FALSE,
     #       shown as NA by show,MethylSet-method
     MSet@preprocessMethod <- c(
         mu.norm = sprintf("Noob, dyeCorr=%s, dyeMethod=%s", dyeCorr, dyeMethod))
-    invisible(gc())
+    ##invisible(gc())
     MSet
 }
 

@@ -21,24 +21,24 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
         } else {
             message("[preprocessFunnorm] Background correction with noob")
         }
-        invisible(gc())
+        ##invisible(gc())
         gmSet <- preprocessNoob(rgSet, dyeCorr = dyeCorr, verbose=verbose)
         if(verbose) message("[preprocessFunnorm] Mapping to genome")
-        invisible(gc())
+        ##invisible(gc())
         gmSet <- mapToGenome(gmSet)
     } else {
         if(verbose) message("[preprocessFunnorm] Mapping to genome")
-        invisible(gc())
+        ##invisible(gc())
         gmSet <- mapToGenome(rgSet)
     }
 
     subverbose <- max(as.integer(verbose) - 1L, 0)
 
     if(verbose) message("[preprocessFunnorm] Quantile extraction")
-    invisible(gc())
+    ##invisible(gc())
     extractedData <- .extractFromRGSet450k(rgSet)
     rm(rgSet)
-    invisible(gc())
+    ##invisible(gc())
 
     if (is.null(sex)) {
         gmSet <- addSex(gmSet, getSex(gmSet, cutoff = -3))
@@ -50,14 +50,14 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
         if(verbose) message("[preprocessFunnorm] Normalization-getCN")
         CN <- getCN(gmSet)
     }
-    invisible(gc())
+    ##invisible(gc())
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k")
     gmSet <- .normalizeFunnorm450k(object = gmSet, extractedData = extractedData,
                                    sex = sex, nPCs = nPCs, verbose = subverbose)
     preprocessMethod <- c(preprocessMethod(gmSet),
                           mu.norm = sprintf("Funnorm, nPCs=%s", nPCs))
     if(ratioConvert) {
-        invisible(gc())
+        ##invisible(gc())
         if(verbose) message("[preprocessFunnorm] Normalization-ratioConvert")
         grSet <- ratioConvert(gmSet, type = "Illumina", keepCN = keepCN)
         if(keepCN) {
@@ -69,7 +69,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
         gmSet@preprocessMethod <- preprocessMethod
         return(gmSet)
     }
-    invisible(gc())
+    ##invisible(gc())
  }
 
  .getFunnormIndices <- function(object) {
@@ -98,21 +98,21 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
          if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix")
          .normalizeMatrix(matrix, newQuantiles, verbose=verbose)
      }
-    
-    invisible(gc())
+
+    ##invisible(gc())
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.buildControl")
     indicesList <- .getFunnormIndices(object)
     model.matrix <- .buildControlMatrix450k(extractedData, verbose=verbose)
     probs <- seq(from = 0, to = 1, length.out = 500)
-     
+
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-getMeth/getUnmeth")
     Meth <- getMeth(object)
     Unmeth <- getUnmeth(object)
-    invisible(gc())
+    ##invisible(gc())
     if (nPCs > 0){
         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-nPCs")
         for (type in c("IGrn", "IRed", "II")) {
-            invisible(gc())
+            ##invisible(gc())
             indices <- indicesList[[type]]
             if(length(indices) > 0) {
                 if(verbose) message(sprintf("[normalizeFunnorm450k] Normalization of the %s probes", type))
@@ -121,7 +121,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
             }
         }
 
-        invisible(gc())
+        ##invisible(gc())
         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-X")
         indices <- indicesList[["X"]]
         if(length(indices) > 0) {
@@ -131,7 +131,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
         }
     }
 
-    invisible(gc())
+    ##invisible(gc())
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-Y")
     indices <- indicesList[["Y"]]
     if(length(indices) > 0) {
@@ -145,17 +145,17 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
         }
         if (nSexes == 2) {
             if (sum(sex == level1)>1) {
-                invisible(gc())
+                ##invisible(gc())
                 Meth[indices, sex==level1]   <- preprocessCore::normalize.quantiles(Meth[indices, sex == level1, drop=FALSE])
                 Unmeth[indices, sex==level1] <- preprocessCore::normalize.quantiles(Unmeth[indices, sex == level1,drop=FALSE])
             }
             if (sum(sex == level2)>1) {
-                invisible(gc())
+                ##invisible(gc())
                 Meth[indices, sex==level2]   <- preprocessCore::normalize.quantiles(Meth[indices, sex == level2,drop=FALSE])
                 Unmeth[indices, sex==level2] <- preprocessCore::normalize.quantiles(Unmeth[indices, sex == level2,drop=FALSE])
             }
         } else {
-            invisible(gc())
+            ##invisible(gc())
             Meth[indices,] <- preprocessCore::normalize.quantiles(Meth[indices,])
             Unmeth[indices,] <- preprocessCore::normalize.quantiles(Unmeth[indices,])
         }
@@ -169,7 +169,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
 
 ### To extract quantiles and control probes from rgSet
 .extractFromRGSet450k <- function(rgSet) {
-    invisible(gc())
+    ##invisible(gc())
     rgSet <- updateObject(rgSet)
     controlType <- c("BISULFITE CONVERSION I",
                      "BISULFITE CONVERSION II",
@@ -191,7 +191,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
     ctrls <- getProbeInfo(rgSet, type = "Control")
     if(!all(controlType %in% ctrls$Type))
         stop("The `rgSet` does not contain all necessary control probes")
-    invisible(gc())
+    ##invisible(gc())
     ctrlsList <- split(ctrls, ctrls$Type)[controlType]
     redControls <- getRed(rgSet)[ctrls$Address,,drop=FALSE]
     redControls <- lapply(ctrlsList, function(ctl) redControls[ctl$Address,,drop=FALSE])
@@ -204,7 +204,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
     greenOOB <- t(colQuantiles(oobRaw$Grn, na.rm = TRUE, probs = probs))
     redOOB   <- t(colQuantiles(oobRaw$Red, na.rm=TRUE,  probs = probs))
     oob      <- list(greenOOB = greenOOB, redOOB = redOOB)
-    invisible(gc())
+    ##invisible(gc())
 
     return(list(
         greenControls = greenControls,
@@ -216,7 +216,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
 
 ## Extraction of the Control matrix
 .buildControlMatrix450k <- function(extractedData, verbose=TRUE) {
-    invisible(gc())
+    ##invisible(gc())
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.buildControl-setVars")
     getCtrlsAddr <- function(exType, index) {
         ctrls <- ctrlsList[[index]]
@@ -261,7 +261,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
 
     ## Staining
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.buildControl-Staining")
-    invisible(gc())
+    ##invisible(gc())
     index <- match("STAINING", controlNames)
     addr <- getCtrlsAddr(exType = "Biotin (High)", index = index)
     stain.green <- t(greenControls[[ index ]][addr,,drop=FALSE])
@@ -270,7 +270,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
 
     ## Extension
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.buildControl-Extension")
-    invisible(gc())
+    ##invisible(gc())
     index <-    match("EXTENSION", controlNames)
     addr <- getCtrlsAddr(exType = sprintf("Extension (%s)", c("A", "T")), index = index)
     extension.red <- t(redControls[[index]][addr,,drop=FALSE])
@@ -280,14 +280,14 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
     colnames(extension.green) <- paste0("extGrn", 1:ncol(extension.green))
 
     ## Hybridization should be monitored only in the green channel
-    invisible(gc())
+    ##invisible(gc())
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.buildControl-Hybridisation")
     index <- match("HYBRIDIZATION", controlNames)
     hybe <- t(greenControls[[index]])
     colnames(hybe) <- paste0("hybe", 1:ncol(hybe))
 
     ## Target removal should be low compared to hybridization probes
-    invisible(gc())
+    ##invisible(gc())
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.buildControl-Targetrem")
     index <- match("TARGET REMOVAL", controlNames)
     targetrem <- t(greenControls[[index]])
@@ -295,7 +295,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
 
     ## Non-polymorphic probes
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.buildControl-Non-polymorphic-probes")
-    invisible(gc())
+    ##invisible(gc())
     index <- match("NON-POLYMORPHIC", controlNames)
     addr <- getCtrlsAddr(exType = sprintf("NP (%s)", c("A", "T")), index = index)
     nonpoly.red <- t(redControls[[index]][addr, ,drop=FALSE])
@@ -306,7 +306,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
 
     ## Specificity II
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.buildControl-Specificity2")
-    invisible(gc())
+    ##invisible(gc())
     index <- match("SPECIFICITY II", controlNames)
     greenControls.current <- greenControls[[index]]
     redControls.current <- redControls[[index]]
@@ -319,7 +319,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
 
     ## Specificity I
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.buildControl-Specificity1")
-    invisible(gc())
+    ##invisible(gc())
     index <- match("SPECIFICITY I", controlNames)
     addr <- getCtrlsAddr(exType = sprintf("GT Mismatch %s (PM)", 1:3), index = index)
     greenControls.current <- greenControls[[index]][addr,,drop=FALSE]
@@ -340,7 +340,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
     spec1.ratio <- (spec1.ratio1 + spec1.ratio2) / 2
 
     ## Normalization probes:
-    invisible(gc())
+    ##invisible(gc())
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.buildControl-Normalisation_Probes")
     index <- match(c("NORM_A"), controlNames)
     normA <- colMeans2(redControls[[index]], na.rm = TRUE)
@@ -358,9 +358,9 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
     oob.ratio <- oobG[2,]/oobR[2,]
     oobG <- t(oobG)
     colnames(oobG) <- paste0("oob", c(1,50,99))
-    
+
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.buildControl-cbind")
-    invisible(gc())
+    ##invisible(gc())
     model.matrix <- cbind(
         bisulfite1, bisulfite2, extension.green, extension.red, hybe,
         stain.green, stain.red, nonpoly.green, nonpoly.red,
@@ -371,7 +371,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
 
     ## Imputation
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.buildControl-Imputation")
-    invisible(gc())
+    ##invisible(gc())
     for (colindex in 1:ncol(model.matrix)) {
         if(any(is.na(model.matrix[,colindex]))) {
             column <- model.matrix[,colindex]
@@ -382,28 +382,28 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
 
     ## Scaling
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.buildControl-Scaling")
-    invisible(gc())
+    ##invisible(gc())
     model.matrix <- scale(model.matrix)
 
     ## Fixing outliers
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.buildControl-Outliers")
-    invisible(gc())
+    ##invisible(gc())
     model.matrix[model.matrix > 3] <- 3
     model.matrix[model.matrix < (-3)] <- -3
 
     ## Rescaling
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.buildControl-Rescaling")
-    invisible(gc())
+    ##invisible(gc())
     model.matrix <- scale(model.matrix)
 
-    invisible(gc())
+    ##invisible(gc())
     return(model.matrix)
 }
 
 
 ### Return the normalized quantile functions
 .returnFit <- function(controlMatrix, quantiles, nPCs) {
-    invisible(gc())
+    ##invisible(gc())
     stopifnot(is.matrix(quantiles))
     stopifnot(is.matrix(controlMatrix))
     stopifnot(ncol(quantiles) == nrow(controlMatrix))
@@ -417,12 +417,12 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
     fits <- lm.fit(x = design, y = t(res))
     newQuantiles <- meanFunction + t(fits$residuals)
     newQuantiles <- .regularizeQuantiles(newQuantiles)
-    invisible(gc())
+    ##invisible(gc())
     return(newQuantiles)
 }
 
 .returnFitBySex <- function(controlMatrix, quantiles, nPCs, sex) {
-    invisible(gc())
+    ##invisible(gc())
     stopifnot(is.matrix(quantiles))
     stopifnot(is.matrix(controlMatrix))
     stopifnot(ncol(quantiles) == nrow(controlMatrix))
@@ -463,13 +463,13 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
         newQuantiles[, sex == levels[2]] <- newQuantiles2
     }
 
-    invisible(gc())
+    ##invisible(gc())
     return(newQuantiles)
 }
 
 ### Normalize a matrix of intensities
 .normalizeMatrix <- function(intMatrix, newQuantiles, verbose=TRUE) {
-    invisible(gc())
+    ##invisible(gc())
     ## normMatrix <- matrix(NA, nrow(intMatrix), ncol(intMatrix))
     n <- nrow(newQuantiles)
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply")
@@ -491,7 +491,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
         result <- preprocessCore::normalize.quantiles.use.target(matrix(crtColumn.reduced), target)
         return(result)
     })
-    invisible(gc())
+    ##invisible(gc())
     return(normMatrix)
 }
 
