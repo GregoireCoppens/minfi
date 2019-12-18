@@ -18,12 +18,11 @@ normexp.get.xs <- function(xf, controls, offset = 50, verbose = FALSE) {
     }
     pars <- data.frame(mu = mu, lsigma = log(sigma), lalpha = log(alpha))
     invisible(gc())
-    if(verbose) message("[normexp.get.xs] normexp.signal: ", seq_len(ncol(xf)) )
+    if(verbose) message("[normexp.get.xs] normexp.signal: ", ncol(xf) )
     for (i in seq_len(ncol(xf))) {
-        if(verbose) message(i)
         xf[, i] <- normexp.signal(as.numeric(pars[i, ]), xf[, i])
         invisible(gc())
-        if(verbose) message(i)
+        if(verbose && i%%50==0) message(i, "/" ncol(xf))
     }
     if(verbose) message("[normexp.get.xs] Build dataframe and return output")
     list(
