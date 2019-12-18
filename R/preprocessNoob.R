@@ -19,16 +19,26 @@ normexp.get.xs <- function(xf, controls, offset = 50, verbose = FALSE) {
     }
     if(verbose) message("[normexp.get.xs] Build dataframe pars")
     pars <- data.frame(mu = mu, lsigma = log(sigma), lalpha = log(alpha))
+
     ##invisible(gc())
+    print(sapply(ls(), object.size))
+    print(sapply(ls(envir = .GlobalEnv), object.size))
+
     if(verbose) message("[normexp.get.xs] normexp.signal")
     for (i in seq_len(ncol(xf))) {
         xf[, i] <- normexp.signal(as.numeric(pars[i, ]), xf[, i])
-        ##invisible(gc())
+        invisible(gc())
         if(verbose && i%%50==0) message(i, "/", ncol(xf))
     }
+    invisible(gc())
     if(verbose) message("[normexp.get.xs] Build dataframe params")
+    print(sapply(ls(), object.size))
+    print(sapply(ls(envir = .GlobalEnv), object.size))
     params <- data.frame(mu = mu, sigma = sigma, alpha = alpha, offset = offset)
+    invisible(gc())
     if(verbose) message("[normexp.get.xs] return output")
+    print(sapply(ls(), object.size))
+    print(sapply(ls(envir = .GlobalEnv), object.size))
     list(
         xs = xf + offset,
         params = params,
@@ -198,6 +208,8 @@ setMethod(
                 U =  Unmeth[Red_probes, , drop = FALSE],
                 D2 = Unmeth[d2.probes, , drop = FALSE]))
         estimates <- lapply(names(dat), function(nch, oob) {
+            print(sapply(ls(), object.size))
+            print(sapply(ls(envir = .GlobalEnv), object.size))
             xf <- rbind(
                 dat[[nch]][["M"]],
                 dat[[nch]][["U"]],
