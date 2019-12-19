@@ -446,7 +446,7 @@ preprocessNoob <- function(rgSet, offset = 15, dyeCorr = TRUE, verbose = FALSE,
     }
     if(verbose) message("[PreprocessNoob] Starting preprocessing")
 
-    rm(rgSet, MSet oob, probe.type)
+    rm(rgSet, MSet, oob, probe.type)
     invisible(gc())
 
     M_and_U <- .preprocessNoob(
