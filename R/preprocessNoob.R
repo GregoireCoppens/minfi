@@ -15,19 +15,20 @@ normexp.get.xs <- function(xf, controls, offset = 50, verbose = FALSE) {
         mu[i] <- ests$mu
         sigma[i] <- ests$s
         alpha[i] <- max(huber(xf[, i])$mu - mu[i], 10)
-        if(verbose && i%%10==0) message(i, "/", ncol(xf))
+        if(verbose && i%%100==0) message(i, "/", ncol(xf))
     }
     if(verbose) message("[normexp.get.xs] Build dataframe pars")
     pars <- data.frame(mu = mu, lsigma = log(sigma), lalpha = log(alpha))
 
-    rm(mu, simga, alpha, ests)
+    #rm(mu, simga, alpha, ests)
+    rm(ests)
     invisible(gc())
 
     if(verbose) message("[normexp.get.xs] normexp.signal")
     for (i in seq_len(ncol(xf))) {
-        if(verbose && i==1) message(i, "/", ncol(xf), " - Object size xf - Before: ", object.size(xf))
+        #if(verbose && i==1) message(i, "/", ncol(xf), " - Object size xf - Before: ", object.size(xf))
         xf[, i] <- normexp.signal(as.numeric(pars[i, ]), xf[, i])
-        if(verbose && i==1) message(i, "/", ncol(xf), " - Object size xf - After: ", object.size(xf))
+        #if(verbose && i==1) message(i, "/", ncol(xf), " - Object size xf - After: ", object.size(xf))
         invisible(gc())
         if(verbose && i%%10==0) message(i, "/", ncol(xf), " - Object size xf: ", object.size(xf))
     }
