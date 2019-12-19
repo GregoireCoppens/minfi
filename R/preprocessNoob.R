@@ -419,7 +419,6 @@ preprocessNoob <- function(rgSet, offset = 15, dyeCorr = TRUE, verbose = FALSE,
     ##invisible(gc())
     if(verbose) message("[PreprocessNoob] Raw preprocessing")
     MSet <- preprocessRaw(rgSet)
-    rm(rgSet, oob)
     if(verbose) message("[PreprocessNoob] Fetching Probes")
     probe.type <- getProbeType(MSet, withColor = TRUE)
     Green_probes <- which(probe.type == "IGrn")
