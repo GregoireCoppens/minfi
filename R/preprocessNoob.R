@@ -145,10 +145,18 @@ dyeCorrection <- function(Meth, Unmeth, Red, Green, control_probes,
         M = Meth[Green_probes,, drop=FALSE],
         U = Unmeth[Green_probes,, drop=FALSE],
         D2 = Meth[d2.probes,, drop=FALSE])
+    mode(Green$M) <- "integer"
+    mode(Green$U) <- "integer"
+    mode(Green$D2) <- "integer"
+    invisible(gc())
+
     Red <- list(
         M = Meth[Red_probes,, drop=FALSE],
         U = Unmeth[Red_probes,, drop=FALSE],
         D2 = Unmeth[d2.probes,, drop=FALSE ])
+    mode(Red$M) <- "integer"
+    mode(Red$U) <- "integer"
+    mode(Red$D2) <- "integer"
 
     # NOTE: Adjust Red regardless of reference or equalization approach
     #       but only adjust Green if using older reference method
@@ -158,29 +166,36 @@ dyeCorrection <- function(Meth, Unmeth, Red, Green, control_probes,
     Red <- lapply(
         X = Red,
         FUN = function(x) {
+            invisible(gc())
             sweep(x, MARGIN = 2, STATS = Red.factor, FUN = "*")
         })
+    if(verbose) message("[DyeCorrection] Transform Red to integer")
     mode(Red$M) <- "integer"
     mode(Red$U) <- "integer"
     mode(Red$D2) <- "integer"
     invisible(gc())
 
+    if(verbose) message("[DyeCorrection] Assigning Red to Meth")
     invisible(gc())
     Unmeth[Red_probes, ] <- Red$U
+    if(verbose) message("[DyeCorrection] Assigning Red to Unmeth")
     invisible(gc())
     Unmeth[d2.probes, ] <- Red$D2
+    if(verbose) message("[DyeCorrection] Assigning Red to D2")
     invisible(gc())
     if (dyeMethod == "reference") {
-        if(verbose) message("[DyeCorrection] Create Red")
+        if(verbose) message("[DyeCorrection] Create Green")
         Green <- lapply(
             X = Green,
             FUN = function(x) {
+                invisible(gc())
                 sweep(x, MARGIN = 2, STATS = Green.factor, FUN = "*")
             })
         mode(Green$M) <- "integer"
         mode(Green$U) <- "integer"
         mode(Green$D2) <- "integer"
         invisible(gc())
+
         Meth[Green_probes, ] <- Green$M
         Unmeth[Green_probes, ] <- Green$U
         Meth[d2.probes, ] <- Green$D2
