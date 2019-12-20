@@ -23,6 +23,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
             message("[preprocessFunnorm] Background correction with noob")
         }
         gmSet <- preprocessNoob(rgSet, dyeCorr = dyeCorr, verbose=verbose)
+        invisible(gc())
         if(verbose) message("[preprocessFunnorm] Mapping to genome")
         gmSet <- mapToGenome(gmSet)
     } else {
@@ -83,14 +84,14 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
      normalizeQuantiles <- function(matrix, indices, sex = NULL, verbose=TRUE) {
          matrix <- matrix[indices,,drop=FALSE]
          ## uses probs, model.matrix, nPCS, through scoping)
-         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex")
+         #if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex")
          oldQuantiles <- t(colQuantiles(matrix, probs = probs))
          if(is.null(sex)) {
              newQuantiles <- .returnFit(controlMatrix = model.matrix, quantiles = oldQuantiles, nPCs = nPCs)
          } else {
              newQuantiles <- .returnFitBySex(controlMatrix = model.matrix, quantiles = oldQuantiles, nPCs = nPCs, sex = sex)
          }
-         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix")
+         #if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix")
          .normalizeMatrix(matrix, newQuantiles, verbose=verbose)
      }
 
@@ -467,7 +468,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
 
     ## normMatrix <- matrix(NA, nrow(intMatrix), ncol(intMatrix))
     n <- nrow(newQuantiles)
-    if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply")
+    #if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply")
     normMatrix <- sapply(1:ncol(intMatrix), function(i) {
         crtColumn <- intMatrix[ , i]
         crtColumn.reduced <- crtColumn[!is.na(crtColumn)]
