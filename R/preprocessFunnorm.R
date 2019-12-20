@@ -52,12 +52,8 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
     preprocessMethod <- c(preprocessMethod(gmSet),
                           mu.norm = sprintf("Funnorm, nPCs=%s", nPCs))
     if(ratioConvert) {
-
         if(verbose) message("[preprocessFunnorm] Normalization-ratioConvert")
         grSet <- ratioConvert(gmSet, type = "Illumina", keepCN = keepCN)
-
-        rm(gmSet)
-        invisible(gmSet)
 
         if(keepCN) {
             assay(grSet, "CN") <- CN

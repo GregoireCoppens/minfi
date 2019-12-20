@@ -18,27 +18,31 @@ normexp.get.xs <- function(xf, controls, offset = 50, verbose = FALSE) {
         if(verbose && i%%100==0) message(i, "/", ncol(xf))
     }
     if(verbose) message("[normexp.get.xs] Build dataframe pars")
-    pars <- data.frame(mu = mu, lsigma = log(sigma), lalpha = log(alpha))
+    #pars <- data.frame(mu = mu, lsigma = log(sigma), lalpha = log(alpha))
+    pars <- matrix(c(mu,log(sigma),log(alpha)),ncol=3)
+    params <- matrix(cbind(mu, sigma, alpha, rep(offset, length(mu))),ncol=4, dimnames = list(c(),c("mu", "sigma", "alpha", "offset")))
 
-    #rm(mu, simga, alpha, ests)
-    rm(ests)
+    rm(mu, sigma, alpha, ests)
     invisible(gc())
 
+    # assign("xf_before", xf, envir=.GlobalEnv)
+    if(verbose) message("Object size xf_Before: ", object.size(xf))
     if(verbose) message("[normexp.get.xs] normexp.signal")
     for (i in seq_len(ncol(xf))) {
-        #if(verbose && i==1) message(i, "/", ncol(xf), " - Object size xf - Before: ", object.size(xf))
-        xf[, i] <- normexp.signal(as.numeric(pars[i, ]), xf[, i])
-        #if(verbose && i==1) message(i, "/", ncol(xf), " - Object size xf - After: ", object.size(xf))
+        xf[, i] <- as.integer(normexp.signal(as.numeric(pars[i, ]), xf[, i]))
         invisible(gc())
-        if(verbose && i%%10==0) message(i, "/", ncol(xf), " - Object size xf: ", object.size(xf))
+        if(verbose && i%%10==0) message(i, "/", ncol(xf))
     }
+    if(verbose) message("Object size xf_After: ", object.size(xf))
+    # assign("xf_after", xf, envir=.GlobalEnv)
     rm(pars)
     invisible(gc())
 
     if(verbose) message("[normexp.get.xs] Build dataframe params")
 
-    params <- data.frame(mu = mu, sigma = sigma, alpha = alpha, offset = offset)
-    rm(mu, sigma, alpha)
+    # params <- data.frame(mu = mu, sigma = sigma, alpha = alpha, offset = offset)
+
+    #rm(mu, sigma, alpha)
     invisible(gc())
 
     if(verbose) message("[normexp.get.xs] return output")
@@ -49,25 +53,25 @@ normexp.get.xs <- function(xf, controls, offset = 50, verbose = FALSE) {
 }
 
 # TODO: Profile
-normexp.get.xcs <- function(xcf, params) {
-    stopifnot(any(grepl("mu", names(params))),
-              any(grepl("sigma", names(params))),
-              any(grepl("alpha", names(params))),
-              any(grepl("offset", names(params))))
+normexp.get.xcs <- function(xcf, params, verbose = FALSE) {
+    stopifnot(any(grepl("mu", colnames(params))),
+              any(grepl("sigma", colnames(params))),
+              any(grepl("alpha", colnames(params))),
+              any(grepl("offset", colnames(params))))
     ##invisible(gc())
     if(verbose) message("[normexp.get.xcs] Searching Huber M-estimator of location with MAD scale")
     pars <- data.frame(
-        mu = params[[grep("mu", names(params), value = TRUE)]],
-        sigma = log(params[[grep("sigma", names(params), value = TRUE)]]),
-        alpha = log(params[[grep("alpha", names(params), value = TRUE)]]))
+        mu = params[,grep("mu", colnames(params), value = TRUE)],
+        sigma = log(params[,grep("sigma", colnames(params), value = TRUE)]),
+        alpha = log(params[,grep("alpha", colnames(params), value = TRUE)]))
     if(verbose) message("[normexp.get.xcs] normexp.signal")
     ##invisible(gc())
     for (i in seq_len(ncol(xcf))) {
-        xcf[, i] <- normexp.signal(as.numeric(pars[i, ]), xcf[, i])
+        xcf[, i] <- as.integer(normexp.signal(as.numeric(pars[i, ]), xcf[, i]))
     }
 
     ##invisible(gc())
-    xcf + params[[grep("offset", names(params), value = TRUE)]][1]
+    xcf + params[,grep("offset", colnames(params), value = TRUE)][1]
 }
 
 # From TJT (2016-06-16)
@@ -83,7 +87,7 @@ normexp.get.xcs <- function(xcf, params) {
 # "reference" version used in (e.g.) the TCGA data processing pipeline.
 dyeCorrection <- function(Meth, Unmeth, Red, Green, control_probes,
                           Green_probes, Red_probes, d2.probes, estimates,
-                          array_type, dyeMethod, verbose) {
+                          array_type, dyeMethod, verbose=verbose) {
 
     # Background correct the Illumina normalization controls
     ##invisible(gc())
@@ -95,7 +99,7 @@ dyeCorrection <- function(Meth, Unmeth, Red, Green, control_probes,
     internal.controls <- list(Green = greenControls, Red = redControls)
     xcs <- lapply(names(internal.controls), function(nch) {
         xcf <- as.matrix(internal.controls[[nch]])
-        normexp.get.xcs(xcf = xcf, params = estimates[[nch]][["params"]])
+        normexp.get.xcs(xcf = xcf, params = as.matrix(estimates[[nch]][["params"]]))
     })
     names(xcs) <- names(internal.controls)
     internal.controls[["Green"]] <- xcs[["Green"]]
@@ -221,11 +225,10 @@ setMethod(
                 offset = offset,
                 verbose = subverbose)
             if(verbose) message(paste0("[PreprocessNoob] normexp.get.xs has finished: ", nch))
-            names(xs[["params"]]) <- paste(
-                names(xs[["params"]]), nch, sep = ".")
+            colnames(xs[["params"]]) <- paste(
+                colnames(xs[["params"]]), nch, sep = ".")
             names(xs[["meta"]]) <- paste(names(xs[["meta"]]), nch, sep = ".")
             ##invisible(gc())
-            if(verbose) message(paste0("[PreprocessNoob] Return xs", nch))
             rm(xf)
             invisible(gc())
             xs
@@ -446,7 +449,7 @@ preprocessNoob <- function(rgSet, offset = 15, dyeCorr = TRUE, verbose = FALSE,
     }
     if(verbose) message("[PreprocessNoob] Starting preprocessing")
 
-    rm(rgSet, MSet, oob, probe.type)
+    rm(rgSet, oob, probe.type)
     invisible(gc())
 
     M_and_U <- .preprocessNoob(
