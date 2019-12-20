@@ -30,7 +30,7 @@ normexp.get.xs <- function(xf, controls, offset = 50, verbose = FALSE) {
     if(verbose) message("[normexp.get.xs] normexp.signal")
     for (i in seq_len(ncol(xf))) {
         xf[, i] <- as.integer(normexp.signal(as.numeric(pars[i, ]), xf[, i]))
-        invisible(gc())
+        #invisible(gc())
         if(verbose && i%%10==0) message(i, "/", ncol(xf))
     }
     if(verbose) message("Object size xf_After: ", object.size(xf))
@@ -46,8 +46,9 @@ normexp.get.xs <- function(xf, controls, offset = 50, verbose = FALSE) {
     invisible(gc())
 
     if(verbose) message("[normexp.get.xs] return output")
+    message("Typeof offset: ", typeof(offset))
     list(
-        xs = xf + offset,
+        xs = xf + as.integer(offset),
         params = params,
         meta = c("background mean", "background SD", "signal mean", "offset"))
 }
@@ -94,8 +95,7 @@ dyeCorrection <- function(Meth, Unmeth, Red, Green, control_probes,
     if(verbose) message("[DyeCorrection] Background correct normalisation controls")
     redControls <- Red[control_probes$Address, , drop = FALSE]
     greenControls <- Green[control_probes$Address, ,drop = FALSE]
-    rownames(redControls) <- rownames(greenControls) <-
-        control_probes$Type
+    rownames(redControls) <- rownames(greenControls) <- control_probes$Type
     internal.controls <- list(Green = greenControls, Red = redControls)
     xcs <- lapply(names(internal.controls), function(nch) {
         xcf <- as.matrix(internal.controls[[nch]])
@@ -228,41 +228,60 @@ setMethod(
             colnames(xs[["params"]]) <- paste(
                 colnames(xs[["params"]]), nch, sep = ".")
             names(xs[["meta"]]) <- paste(names(xs[["meta"]]), nch, sep = ".")
-            ##invisible(gc())
+
             rm(xf)
             invisible(gc())
+
             xs
         }, oob = list(Green = GreenOOB, Red = RedOOB))
         names(estimates) <- names(dat)
 
         # Correct for Green and Red in Meth and Unmeth
-        ##invisible(gc())
         if(verbose) message("[PreprocessNoob] Correct for Green and Red")
+        if(verbose) message("[PreprocessNoob] Correct for Green and Red - Rows")
         rows <- lapply(dat, function(x) vapply(x, nrow, integer(1L)))
+        #rm(dat)
+        invisible(gc())
+        # assign("meth_before", Meth, envir = .GlobalEnv)
+        # assign("estimates", estimates, envir = .GlobalEnv)
+
+        if(verbose) message("[PreprocessNoob] Correct for Green and Red - Last")
         last <- lapply(rows, cumsum)
+
+        if(verbose) message("[PreprocessNoob] Correct for Green and Red - First")
         first <- Map(function(last, rows) last - rows + 1, last, rows)
+
+        if(verbose) message("[PreprocessNoob] Correct for Green and Red - Green probes")
+        message("Before: Meth: ", object.size(Meth))
         if (length(Green_probes) > 0) {
             Green.M <- seq(first[["Green"]][["M"]], last[["Green"]][["M"]])
             Meth[Green_probes, ] <- estimates[["Green"]][["xs"]][Green.M, ]
             Green.U <- seq(first[["Green"]][["U"]], last[["Green"]][["U"]])
             Unmeth[Green_probes, ] <- estimates[["Green"]][["xs"]][Green.U, ]
         }
+        message("After Green: Meth: ", object.size(Meth))
+        if(verbose) message("[PreprocessNoob] Correct for Green and Red - Red probes")
         if (length(Red_probes) > 0) {
             Red.M <- seq(first[["Red"]][["M"]], last[["Red"]][["M"]])
             Meth[Red_probes, ] <- estimates[["Red"]][["xs"]][Red.M, ]
             Red.U <- seq(first[["Red"]][["U"]], last[["Red"]][["U"]])
             Unmeth[Red_probes, ] <- estimates[["Red"]][["xs"]][Red.U, ]
         }
+        message("After Red: Meth: ", object.size(Meth))
+        if(verbose) message("[PreprocessNoob] Correct for Green and Red - d2 probes")
         if (length(d2.probes) > 0) {
             d2.M <- seq(first[["Green"]][["D2"]], last[["Green"]][["D2"]])
             d2.U <- seq(first[["Red"]][["D2"]], last[["Red"]][["D2"]])
             Meth[d2.probes, ] <- estimates[["Green"]][["xs"]][d2.M, ]
             Unmeth[d2.probes, ] <- estimates[["Red"]][["xs"]][d2.U, ]
         }
+        message("After d2: Meth: ", object.size(Meth))
+        # assign("meth_after", Meth, envir = .GlobalEnv)
 
         if (!dyeCorr) {
             return(list(Meth = Meth, Unmeth = Unmeth))
         }
+        if(verbose) message("[PreprocessNoob] DyeCorrection")
         dyeCorrection(
             Meth = Meth,
             Unmeth = Unmeth,
