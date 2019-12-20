@@ -30,7 +30,7 @@ normexp.get.xs <- function(xf, controls, offset = 50, verbose = FALSE) {
     if(verbose) message("[normexp.get.xs] normexp.signal")
     for (i in seq_len(ncol(xf))) {
         xf[, i] <- as.integer(normexp.signal(as.numeric(pars[i, ]), xf[, i]))
-        #invisible(gc())
+        invisible(gc())
         if(verbose && i%%10==0) message(i, "/", ncol(xf))
     }
     if(verbose) message("Object size xf_After: ", object.size(xf))
@@ -153,27 +153,41 @@ dyeCorrection <- function(Meth, Unmeth, Red, Green, control_probes,
     # NOTE: Adjust Red regardless of reference or equalization approach
     #       but only adjust Green if using older reference method
     if(verbose) message("[DyeCorrection] Dye Correction")
-    ##invisible(gc())
+    invisible(gc())
+    if(verbose) message("[DyeCorrection] Create Red")
     Red <- lapply(
         X = Red,
         FUN = function(x) {
             sweep(x, MARGIN = 2, STATS = Red.factor, FUN = "*")
         })
-    Meth[Red_probes, ] <- Red$M
+    mode(Red$M) <- "integer"
+    mode(Red$U) <- "integer"
+    mode(Red$D2) <- "integer"
+    invisible(gc())
+
+    invisible(gc())
     Unmeth[Red_probes, ] <- Red$U
+    invisible(gc())
     Unmeth[d2.probes, ] <- Red$D2
+    invisible(gc())
     if (dyeMethod == "reference") {
+        if(verbose) message("[DyeCorrection] Create Red")
         Green <- lapply(
             X = Green,
             FUN = function(x) {
                 sweep(x, MARGIN = 2, STATS = Green.factor, FUN = "*")
             })
+        mode(Green$M) <- "integer"
+        mode(Green$U) <- "integer"
+        mode(Green$D2) <- "integer"
+        invisible(gc())
         Meth[Green_probes, ] <- Green$M
         Unmeth[Green_probes, ] <- Green$U
         Meth[d2.probes, ] <- Green$D2
     }
+    if(verbose) message("[DyeCorrection] Returning Dye Correction")
 
-    ##invisible(gc())
+    invisible(gc())
     list(Meth = Meth, Unmeth = Unmeth)
 }
 
