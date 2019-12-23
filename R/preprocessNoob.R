@@ -141,50 +141,58 @@ dyeCorrection <- function(Meth, Unmeth, Red, Green, control_probes,
         Red.factor <- ref / Red.avg
     }
 
-    Green <- list(
-        M = Meth[Green_probes,, drop=FALSE],
-        U = Unmeth[Green_probes,, drop=FALSE],
-        D2 = Meth[d2.probes,, drop=FALSE])
-    mode(Green$M) <- "integer"
-    mode(Green$U) <- "integer"
-    mode(Green$D2) <- "integer"
+    if(verbose) message("[DyeCorrection] Red_M")
+    Red_M  <-  Meth[Red_probes,, drop=FALSE]
+    mode(Red_M) <- "integer"
+    invisible(gc())
+    if(verbose) message("[DyeCorrection] Red_M-Sweep")
+    Red_M <- sweep(Red_M, MARGIN = 2, STATS = Red.factor, FUN = "*")
+    mode(Red_M) <- "integer"
+    invisible(gc())
+    if(verbose) message("[DyeCorrection] Red_M-Write")
+    Meth[Red_probes, ] <- Red_M
+    rm(Red_M)
     invisible(gc())
 
-    Red <- list(
-        M = Meth[Red_probes,, drop=FALSE],
-        U = Unmeth[Red_probes,, drop=FALSE],
-        D2 = Unmeth[d2.probes,, drop=FALSE ])
-    mode(Red$M) <- "integer"
-    mode(Red$U) <- "integer"
-    mode(Red$D2) <- "integer"
-
-    # NOTE: Adjust Red regardless of reference or equalization approach
-    #       but only adjust Green if using older reference method
-    if(verbose) message("[DyeCorrection] Dye Correction")
+    if(verbose) message("[DyeCorrection] Red_U")
+    Red_U  <-  Unmeth[Red_probes,, drop=FALSE]
+    mode(Red_U) <- "integer"
     invisible(gc())
-    if(verbose) message("[DyeCorrection] Create Red")
-    Red <- lapply(
-        X = Red,
-        FUN = function(x) {
-            invisible(gc())
-            sweep(x, MARGIN = 2, STATS = Red.factor, FUN = "*")
-        })
-    if(verbose) message("[DyeCorrection] Transform Red to integer")
-    mode(Red$M) <- "integer"
-    mode(Red$U) <- "integer"
-    mode(Red$D2) <- "integer"
+    if(verbose) message("[DyeCorrection] Red_U-Sweep")
+    Red_U <- sweep(Red_U, MARGIN = 2, STATS = Red.factor, FUN = "*")
+    mode(Red_U) <- "integer"
+    invisible(gc())
+    if(verbose) message("[DyeCorrection] Red_U-Write")
+    Unmeth[Red_probes, ] <- Red_U
+    rm(Red_U)
     invisible(gc())
 
-    if(verbose) message("[DyeCorrection] Assigning Red to Meth")
+    if(verbose) message("[DyeCorrection] Red_D2")
+    Red_D2 <-  Unmeth[d2.probes,, drop=FALSE ]
+    mode(Red_D2) <- "integer"
     invisible(gc())
-    Unmeth[Red_probes, ] <- Red$U
-    if(verbose) message("[DyeCorrection] Assigning Red to Unmeth")
+    if(verbose) message("[DyeCorrection] Red_D2-Sweep")
+    Red_D2 <- sweep(Red_D2, MARGIN = 2, STATS = Red.factor, FUN = "*")
+    mode(Red_D2) <- "integer"
     invisible(gc())
-    Unmeth[d2.probes, ] <- Red$D2
-    if(verbose) message("[DyeCorrection] Assigning Red to D2")
+    Unmeth[d2.probes, ] <- Red_D2
+    if(verbose) message("[DyeCorrection] Red_D2-Write")
+    rm(Red_D2)
     invisible(gc())
+
+
+
     if (dyeMethod == "reference") {
         if(verbose) message("[DyeCorrection] Create Green")
+        Green <- list(
+            M = Meth[Green_probes,, drop=FALSE],
+            U = Unmeth[Green_probes,, drop=FALSE],
+            D2 = Meth[d2.probes,, drop=FALSE])
+
+        mode(Green$M) <- "integer"
+        mode(Green$U) <- "integer"
+        mode(Green$D2) <- "integer"
+        invisible(gc())
         Green <- lapply(
             X = Green,
             FUN = function(x) {
