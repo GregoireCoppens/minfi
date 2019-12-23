@@ -140,6 +140,14 @@ dyeCorrection <- function(Meth, Unmeth, Red, Green, control_probes,
         Green.factor <- ref / Green.avg
         Red.factor <- ref / Red.avg
     }
+    dyeCorrection <- function(Meth, Unmeth, Red, Green, control_probes,
+                              Green_probes, Red_probes, d2.probes, estimates,
+                              array_type, dyeMethod, verbose=verbose)
+
+
+    rm(Green.avg, Red.avg, R.G.ratio, Red, control_probes, estimates, array_type, CG.controls, AT.controls, xcs, internal.controls)
+    if(dyeMethod == "single") rm(Green, Green_probes)
+    invisible(gc())
 
     if(verbose) message("[DyeCorrection] Red_M")
     Red_M  <-  Meth[Red_probes,, drop=FALSE]
@@ -175,8 +183,8 @@ dyeCorrection <- function(Meth, Unmeth, Red, Green, control_probes,
     Red_D2 <- sweep(Red_D2, MARGIN = 2, STATS = Red.factor, FUN = "*")
     mode(Red_D2) <- "integer"
     invisible(gc())
-    Unmeth[d2.probes, ] <- Red_D2
     if(verbose) message("[DyeCorrection] Red_D2-Write")
+    Unmeth[d2.probes, ] <- Red_D2
     rm(Red_D2)
     invisible(gc())
 
