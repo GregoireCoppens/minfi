@@ -176,17 +176,24 @@ dyeCorrection <- function(Meth, Unmeth, Red, Green, control_probes,
     invisible(gc())
 
     if(verbose) message("[DyeCorrection] Red_D2")
-    Red_D2 <-  Unmeth[d2.probes,, drop=FALSE ]
-    mode(Red_D2) <- "integer"
-    invisible(gc())
-    if(verbose) message("[DyeCorrection] Red_D2-Sweep")
-    Red_D2 <- sweep(Red_D2, MARGIN = 2, STATS = Red.factor, FUN = "*")
-    mode(Red_D2) <- "integer"
-    invisible(gc())
-    if(verbose) message("[DyeCorrection] Red_D2-Write")
-    Unmeth[d2.probes, ] <- Red_D2
-    rm(Red_D2)
-    invisible(gc())
+    d2p_length <- length(d2.probes)
+    divs <- 4
+    d2p_part <- ceiling(d2p_length/divs)
+    # assign("d2_probes", d2.probes, envir = .GlobalEnv)
+    for(i in 1:divs){
+        if(verbose) message("[DyeCorrection] Red_D2: ",i)
+        Red_D2 <-  Unmeth[d2.probes[(d2p_part*i-d2p_part):min(d2p_part*i, d2p_length)],, drop=FALSE ]
+        mode(Red_D2) <- "integer"
+        invisible(gc())
+        if(verbose) message("[DyeCorrection] Red_D2-Sweep")
+        Red_D2 <- sweep(Red_D2, MARGIN = 2, STATS = Red.factor, FUN = "*")
+        mode(Red_D2) <- "integer"
+        invisible(gc())
+        if(verbose) message("[DyeCorrection] Red_D2-Write")
+        Unmeth[d2.probes[(d2p_part*i-d2p_part):min(d2p_part*i, d2p_length)], ] <- Red_D2
+        rm(Red_D2)
+        invisible(gc())
+    }
 
 
 
