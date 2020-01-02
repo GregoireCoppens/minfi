@@ -84,14 +84,17 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
      normalizeQuantiles <- function(matrix, indices, sex = NULL, verbose=TRUE) {
          matrix <- matrix[indices,,drop=FALSE]
          ## uses probs, model.matrix, nPCS, through scoping)
-         #if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex")
+         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex")
          oldQuantiles <- t(colQuantiles(matrix, probs = probs))
+         invisible(gc())
          if(is.null(sex)) {
              newQuantiles <- .returnFit(controlMatrix = model.matrix, quantiles = oldQuantiles, nPCs = nPCs)
          } else {
              newQuantiles <- .returnFitBySex(controlMatrix = model.matrix, quantiles = oldQuantiles, nPCs = nPCs, sex = sex)
          }
-         #if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix")
+         rm(oldQuantiles)
+         invisible(gc())
+         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix")
          .normalizeMatrix(matrix, newQuantiles, verbose=verbose)
      }
 
@@ -402,20 +405,34 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
 
 ### Return the normalized quantile functions
 .returnFit <- function(controlMatrix, quantiles, nPCs) {
-
+    if(verbose) message("[preprocessFunnorm] .ReturnFit")
     stopifnot(is.matrix(quantiles))
     stopifnot(is.matrix(controlMatrix))
     stopifnot(ncol(quantiles) == nrow(controlMatrix))
     ## Fixing potential problems with extreme quantiles
+    if(verbose) message("[preprocessFunnorm] .ReturnFit-Fixing_Extreme")
     quantiles[1,] <- 0
     quantiles[nrow(quantiles),] <- quantiles[nrow(quantiles) - 1,] + 1000
+    if(verbose) message("[preprocessFunnorm] .ReturnFit-rowMeans")
     meanFunction <- rowMeans2(quantiles)
     res <- quantiles - meanFunction
+
+    if(verbose) message("[preprocessFunnorm] .ReturnFit-prcomp")
     controlPCs <- prcomp(controlMatrix)$x[,1:nPCs,drop=FALSE]
+    rm(controlMatrix, quantiles)
+    invisible(gc())
+
+    if(verbose) message("[preprocessFunnorm] .ReturnFit-model")
     design <- model.matrix(~controlPCs)
+    if(verbose) message("[preprocessFunnorm] .ReturnFit-Fit")
     fits <- lm.fit(x = design, y = t(res))
+    if(verbose) message("[preprocessFunnorm] .ReturnFit-NewQuantiles")
     newQuantiles <- meanFunction + t(fits$residuals)
+    if(verbose) message("[preprocessFunnorm] .ReturnFit-regularizeQuantiles")
     newQuantiles <- .regularizeQuantiles(newQuantiles)
+    if(verbose) message("[preprocessFunnorm] .ReturnFit-Return")
+    rm(design, fits)
+    invisible(gc())
 
     return(newQuantiles)
 }
