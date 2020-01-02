@@ -112,10 +112,13 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
             indices <- indicesList[[type]]
             if(length(indices) > 0) {
                 if(verbose) message(sprintf("[normalizeFunnorm450k] Normalization of the %s probes", type))
+                invisible(gc())
                 Unmeth[indices,] <- normalizeQuantiles(Unmeth, indices = indices, sex = NULL, verbose=verbose)
                 Meth[indices,] <- normalizeQuantiles(Meth, indices = indices, sex = NULL, verbose=verbose)
+                rm(indices)
             }
         }
+        invisible(gc())
 
 
         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-X")
