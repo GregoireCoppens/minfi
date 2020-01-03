@@ -85,11 +85,15 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
          matrix <- matrix[indices,,drop=FALSE]
          ## uses probs, model.matrix, nPCS, through scoping)
          if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex")
+         invisible(gc())
+         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-Transpose")
          oldQuantiles <- t(colQuantiles(matrix, probs = probs))
          invisible(gc())
          if(is.null(sex)) {
+             if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-ReturnFit")
              newQuantiles <- .returnFit(controlMatrix = model.matrix, quantiles = oldQuantiles, nPCs = nPCs)
          } else {
+             if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-ReturnFitBySex")
              newQuantiles <- .returnFitBySex(controlMatrix = model.matrix, quantiles = oldQuantiles, nPCs = nPCs, sex = sex)
          }
          rm(oldQuantiles)
@@ -110,8 +114,8 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
 
     if (nPCs > 0){
         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-nPCs")
-        for (type in c("IGrn", "IRed", "II")) {
-
+        # for (type in c("IGrn", "IRed", "II")) {
+        for (type in c("IGrn", "IRed")) {
             indices <- indicesList[[type]]
             if(length(indices) > 0) {
                 if(verbose) message(sprintf("[normalizeFunnorm450k] Normalization of the %s probes", type))
@@ -119,10 +123,26 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
                 Unmeth[indices,] <- normalizeQuantiles(Unmeth, indices = indices, sex = NULL, verbose=verbose)
                 Meth[indices,] <- normalizeQuantiles(Meth, indices = indices, sex = NULL, verbose=verbose)
                 rm(indices)
+                invisible(gc())
             }
         }
+        #################
+        # Seperate II out of for loop
         invisible(gc())
+        type <- "II"
+        indices <- indicesList[[type]]
+        if(length(indices) > 0) {
+            if(verbose) message(sprintf("[normalizeFunnorm450k] Normalization of the %s probes", type))
+            invisible(gc())
+            Unmeth[indices,] <- normalizeQuantiles(Unmeth, indices = indices, sex = NULL, verbose=verbose)
+            invisible(gc())
+            Meth[indices,] <- normalizeQuantiles(Meth, indices = indices, sex = NULL, verbose=verbose)
+            rm(indices)
+            invisible(gc())
+        }
+        ################
 
+        invisible(gc())
 
         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-X")
         indices <- indicesList[["X"]]
