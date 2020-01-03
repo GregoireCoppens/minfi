@@ -404,7 +404,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
 
 
 ### Return the normalized quantile functions
-.returnFit <- function(controlMatrix, quantiles, nPCs) {
+.returnFit <- function(controlMatrix, quantiles, nPCs, verbose=TRUE) {
     if(verbose) message("[preprocessFunnorm] .ReturnFit")
     stopifnot(is.matrix(quantiles))
     stopifnot(is.matrix(controlMatrix))
@@ -437,7 +437,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
     return(newQuantiles)
 }
 
-.returnFitBySex <- function(controlMatrix, quantiles, nPCs, sex) {
+.returnFitBySex <- function(controlMatrix, quantiles, nPCs, sex, verbose=TRUE) {
 
     stopifnot(is.matrix(quantiles))
     stopifnot(is.matrix(controlMatrix))
