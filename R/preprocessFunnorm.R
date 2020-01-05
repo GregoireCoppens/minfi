@@ -87,8 +87,21 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
          if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex")
          invisible(gc())
          if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-Transpose")
-         oldQuantiles <- t(colQuantiles(matrix, probs = probs))
+         # Transpose to big, so we split it up in multiple steps to reduce the memory load
+         # oldQuantiles <- t(colQuantiles(matrix, probs = probs))
+         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-colQuantiles")
+         mcq <- colQuantiles(matrix, probs = probs)
+         rm(probs)
          invisible(gc())
+         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-Transpose-Part1")
+         mcqt1 <- t(mcq[,1:floor(ncol(mcq)/2)])
+         invisible(gc())
+         mcqt2 <- t(mcq[,(floor(ncol(mcq)/2)+1):(ncol(mcq))])
+         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-Transpose-Part2")
+         oldQuantiles <- rbind(mcqt1, mcqt2)
+         rm(mcqt1, mcqt2)
+         invisible(gc())
+
          if(is.null(sex)) {
              if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-ReturnFit")
              newQuantiles <- .returnFit(controlMatrix = model.matrix, quantiles = oldQuantiles, nPCs = nPCs)
