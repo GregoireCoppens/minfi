@@ -85,6 +85,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
          matrix <- matrix[indices,,drop=FALSE]
          ## uses probs, model.matrix, nPCS, through scoping)
          if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex")
+         rm(indices)
          invisible(gc())
          if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-Transpose")
          # Transpose to big, so we split it up in multiple steps to reduce the memory load
