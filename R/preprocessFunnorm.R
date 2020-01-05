@@ -91,7 +91,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
          # oldQuantiles <- t(colQuantiles(matrix, probs = probs))
          if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-colQuantiles")
          mcq <- colQuantiles(matrix, probs = probs)
-         rm(probs)
+         # rm(probs)
          invisible(gc())
          if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-Transpose-Part1")
          mcqt1 <- t(mcq[,1:floor(ncol(mcq)/2)])
