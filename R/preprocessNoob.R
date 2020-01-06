@@ -15,7 +15,7 @@ normexp.get.xs <- function(xf, controls, offset = 50, verbose = FALSE) {
         mu[i] <- ests$mu
         sigma[i] <- ests$s
         alpha[i] <- max(huber(xf[, i])$mu - mu[i], 10)
-        if(verbose && i%%100==0) message(i, "/", ncol(xf))
+        # if(verbose && i%%100==0) message(i, "/", ncol(xf))
     }
     if(verbose) message("[normexp.get.xs] Build dataframe pars")
     #pars <- data.frame(mu = mu, lsigma = log(sigma), lalpha = log(alpha))
@@ -26,14 +26,14 @@ normexp.get.xs <- function(xf, controls, offset = 50, verbose = FALSE) {
     invisible(gc())
 
     # assign("xf_before", xf, envir=.GlobalEnv)
-    if(verbose) message("Object size xf_Before: ", object.size(xf))
+    # if(verbose) message("Object size xf_Before: ", object.size(xf))
     if(verbose) message("[normexp.get.xs] normexp.signal")
     for (i in seq_len(ncol(xf))) {
         xf[, i] <- as.integer(normexp.signal(as.numeric(pars[i, ]), xf[, i]))
         invisible(gc())
-        if(verbose && i%%10==0) message(i, "/", ncol(xf))
+        # if(verbose && i%%10==0) message(i, "/", ncol(xf))
     }
-    if(verbose) message("Object size xf_After: ", object.size(xf))
+    # if(verbose) message("Object size xf_After: ", object.size(xf))
     # assign("xf_after", xf, envir=.GlobalEnv)
     rm(pars)
     invisible(gc())
@@ -46,7 +46,6 @@ normexp.get.xs <- function(xf, controls, offset = 50, verbose = FALSE) {
     invisible(gc())
 
     if(verbose) message("[normexp.get.xs] return output")
-    message("Typeof offset: ", typeof(offset))
     list(
         xs = xf + as.integer(offset),
         params = params,

@@ -83,6 +83,8 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
  .normalizeFunnorm450k <- function(object, extractedData, nPCs, sex, verbose = TRUE) {
      normalizeQuantiles <- function(matrix, indices, sex = NULL, verbose=TRUE) {
          matrix <- matrix[indices,,drop=FALSE]
+         assign("matrix", matrix, envir = .GlobalEnv)
+         saveRDS(matrix, "C:/Users/u0134054/normalizeQuantiles_matrix.Rdata")
          ## uses probs, model.matrix, nPCS, through scoping)
          if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex")
          rm(indices)
@@ -92,16 +94,37 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
          # oldQuantiles <- t(colQuantiles(matrix, probs = probs))
          if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-colQuantiles")
          # mcq <- colQuantiles(matrix, probs = probs)
-         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-colQuantiles-1")
-         mcq1 <- colQuantiles(matrix[,1:ceiling(ncol(matrix)/2)], probs=probs)
+         n <- 100
+         if(ncol(matrix) < n*2) {
+             if(verbose) message("[preprocessFunnorm] Exception: Small Sample size: ", ncol(matrix))
+             n <- 3
+         }
+         part <- floor(ncol(matrix)/n)
+         i <- 1
+         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-colQuantiles-",i)
+         mcq <- colQuantiles(matrix[,(part*i-part+1):(part*i)], probs=probs)
          invisible(gc())
-         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-colQuantiles-2")
-         mcq2 <- colQuantiles(matrix[,(ceiling(ncol(matrix)/2)+1):ncol(matrix)], probs=probs)
+
+         for (i in 2:n){
+             if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-colQuantiles-",i)
+             mcq2 <- colQuantiles(matrix[,(part*i-part+1):(part*i)], probs=probs)
+             invisible(gc())
+             if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-colQuantiles-rbind")
+             mcq <- rbind(mcq, mcq2)
+             rm(mcq2)
+             invisible(gc())
+         }
+         i <- n+1
+         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-colQuantiles-",i)
+         if((part*i-part+1) != ncol(matrix)){
+            mcq2 <- colQuantiles(matrix[,(part*i-part+1):ncol(matrix)], probs=probs)
+         }
          invisible(gc())
          if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-colQuantiles-rbind")
-         mcq <- rbind(mcq1, mcq2)
-         rm(mcq1, mcq2)
+         mcq <- rbind(mcq, mcq2)
+         rm(mcq2)
          invisible(gc())
+
          if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-Transpose-Part1")
          mcqt1 <- t(mcq[,1:floor(ncol(mcq)/2)])
          invisible(gc())
