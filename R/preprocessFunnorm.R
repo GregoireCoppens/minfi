@@ -120,7 +120,9 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.buildControl")
     indicesList <- .getFunnormIndices(object)
     model.matrix <- .buildControlMatrix450k(extractedData, verbose=verbose)
-    probs <- seq(from = 0, to = 1, length.out = 500)
+    # probs <- seq(from = 0, to = 1, length.out = 500)
+    # Lowered length of probs, since not enough RAM memory, because of to many samples
+    probs <- seq(from = 0, to = 1, length.out = 100)
 
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-getMeth/getUnmeth")
     Meth <- getMeth(object)
