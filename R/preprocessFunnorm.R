@@ -97,7 +97,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
          n <- 100
          if(ncol(matrix) < n*2) {
              if(verbose) message("[preprocessFunnorm] Exception: Small Sample size: ", ncol(matrix))
-             n <- 3
+             n <- 5
          }
          part <- floor(ncol(matrix)/n)
          i <- 1
@@ -115,14 +115,13 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
              invisible(gc())
          }
          i <- n+1
-         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-colQuantiles-",i)
          if((part*i-part+1) != ncol(matrix)){
+            if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-colQuantiles-",i)
             mcq2 <- colQuantiles(matrix[,(part*i-part+1):ncol(matrix)], probs=probs)
+            if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-colQuantiles-rbind")
+            mcq <- rbind(mcq, mcq2)
+            rm(mcq2)
          }
-         invisible(gc())
-         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-colQuantiles-rbind")
-         mcq <- rbind(mcq, mcq2)
-         rm(mcq2)
          invisible(gc())
 
          if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex-Transpose-Part1")
