@@ -83,8 +83,8 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
  .normalizeFunnorm450k <- function(object, extractedData, nPCs, sex, verbose = TRUE) {
      normalizeQuantiles <- function(matrix, indices, sex = NULL, verbose=TRUE) {
          matrix <- matrix[indices,,drop=FALSE]
-         assign("matrix", matrix, envir = .GlobalEnv)
-         saveRDS(matrix, "C:/Users/u0134054/normalizeQuantiles_matrix.Rdata")
+         # assign("matrix", matrix, envir = .GlobalEnv)
+         # saveRDS(matrix, "C:/Users/u0134054/Desktop/normalizeQuantiles_matrix.Rdata")
          ## uses probs, model.matrix, nPCS, through scoping)
          if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-sex")
          rm(indices)
@@ -555,10 +555,13 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
 
     ## normMatrix <- matrix(NA, nrow(intMatrix), ncol(intMatrix))
     n <- nrow(newQuantiles)
-    #if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply")
+    if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply")
     normMatrix <- sapply(1:ncol(intMatrix), function(i) {
+        if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply: ",i)
         crtColumn <- intMatrix[ , i]
+        if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply- crtColumn Reduced")
         crtColumn.reduced <- crtColumn[!is.na(crtColumn)]
+        if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply-sapply")
         ## Generation of the corrected intensities:
         target <- sapply(1:(n-1), function(j) {
             start <- newQuantiles[j,i]
@@ -568,13 +571,20 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
             } else {
                 sequence <- rep(start, n)
             }
+            invisible(gc())
             return(sequence)
         })
+        if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply-target")
         target <- as.vector(target)
+        invisible(gc())
+        if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply-normalize")
         result <- preprocessCore::normalize.quantiles.use.target(matrix(crtColumn.reduced), target)
+        invisible(gc())
         return(result)
     })
 
+    if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-return")
+    invisible(gc())
     return(normMatrix)
 }
 
