@@ -564,6 +564,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply-sapply")
         ## Generation of the corrected intensities:
         target <- sapply(1:(n-1), function(j) {
+            # if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply-sapply: ",j)
             start <- newQuantiles[j,i]
             end <- newQuantiles[j+1,i]
             if (!isTRUE(all.equal(start,end))){
@@ -571,7 +572,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
             } else {
                 sequence <- rep(start, n)
             }
-            invisible(gc())
+            # invisible(gc())
             return(sequence)
         })
         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply-target")
