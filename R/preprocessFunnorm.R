@@ -553,8 +553,8 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
 ### Normalize a matrix of intensities
 .normalizeMatrix <- function(intMatrix, newQuantiles, verbose=TRUE) {
 
-    assign("intMatrix", intMatrix, envir = .GlobalEnv)
-    assign("newQuantiles", newQuantiles, envir = .GlobalEnv)
+    # assign("intMatrix", intMatrix, envir = .GlobalEnv)
+    # assign("newQuantiles", newQuantiles, envir = .GlobalEnv)
     normMatrix <- matrix(NA, nrow(intMatrix), ncol(intMatrix))
     n <- nrow(newQuantiles)
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply")
@@ -592,7 +592,7 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
         normMatrix[,i] <- normMatrixSapply(i)
         invisible(gc())
     }
-    assign("normMatrix", normMatrix, envir = .GlobalEnv)
+    # assign("normMatrix", normMatrix, envir = .GlobalEnv)
 
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-return")
     invisible(gc())
