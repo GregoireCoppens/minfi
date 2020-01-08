@@ -553,10 +553,13 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
 ### Normalize a matrix of intensities
 .normalizeMatrix <- function(intMatrix, newQuantiles, verbose=TRUE) {
 
-    ## normMatrix <- matrix(NA, nrow(intMatrix), ncol(intMatrix))
+    assign("intMatrix", intMatrix, envir = .GlobalEnv)
+    assign("newQuantiles", newQuantiles, envir = .GlobalEnv)
+    normMatrix <- matrix(NA, nrow(intMatrix), ncol(intMatrix))
     n <- nrow(newQuantiles)
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply")
-    normMatrix <- sapply(1:ncol(intMatrix), function(i) {
+    # normMatrix <- sapply(1:ncol(intMatrix), function(i) {
+    normMatrixSapply <- function(i) {
         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply: ",i)
         crtColumn <- intMatrix[ , i]
         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply- crtColumn Reduced")
@@ -577,12 +580,19 @@ preprocessFunnorm <- function(rgSet, nPCs=2, sex = NULL, bgCorr = TRUE, dyeCorr 
         })
         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply-target")
         target <- as.vector(target)
-        invisible(gc())
+        # invisible(gc())
         if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-sapply-normalize")
         result <- preprocessCore::normalize.quantiles.use.target(matrix(crtColumn.reduced), target)
-        invisible(gc())
+        # invisible(gc())
         return(result)
-    })
+    # })
+
+    }
+    for (i in 1:ncol(intMatrix)){
+        normMatrix[,i] <- normMatrixSapply(i)
+        invisible(gc())
+    }
+    assign("normMatrix", normMatrix, envir = .GlobalEnv)
 
     if(verbose) message("[preprocessFunnorm] Normalization-.normalizeFunnorm450k-.normalizeMatrix-return")
     invisible(gc())
